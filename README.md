@@ -1,6 +1,6 @@
 # Planogram for bottle detection 
 
-Overview
+# Overview
 This script is a Flask-based image processing system that:
 
 Fetches images from a database that need processing.
@@ -10,7 +10,7 @@ Processes images using a YOLO object detection model.
 Updates the database with processed results.
 Sends email alerts if the script is not running as expected.
 Key Components
-1. Imports
+# 1. Imports
 The script imports multiple libraries for various tasks:
 
 Data Handling: pandas
@@ -22,12 +22,12 @@ Database Connection: pymysql
 Networking: requests
 Email Notifications: smtplib
 Amazon S3: boto3 (though not used in the visible code)
-2. Database Connection (DBHelper)
+# 2. Database Connection (DBHelper)
 The script initializes a database helper instance (con1 = DBHelper()) to manage database connections.
-3. Flask Application Setup
+# 3. Flask Application Setup
 app = Flask(__name__) initializes the Flask app to expose an API endpoint.
 Functions & Their Purpose
-1. Checking Image Corruption (is_image_corrupted)
+# 1. Checking Image Corruption (is_image_corrupted)
 python
 Copy
 Edit
@@ -43,7 +43,7 @@ def is_image_corrupted(image_path):
     return False
 Ensures that the image is readable and has valid dimensions.
 Uses OpenCV (cv2.imread) to check if the image is corrupted.
-2. Sending Email Alerts (send_email)
+# 2. Sending Email Alerts (send_email)
 python
 Copy
 Edit
@@ -79,7 +79,7 @@ def send_email(con):
         print(f"Failed to send email: {e}")
 Queries the database for recipient email addresses.
 Sends an alert email if the script stops working.
-3. Checking Last Image Insert Time (check_last_insert_time)
+# 3. Checking Last Image Insert Time (check_last_insert_time)
 python
 Copy
 Edit
@@ -93,7 +93,7 @@ def check_last_insert_time(con):
         send_email(con)
 Retrieves the last inserted image timestamp from the image_predictions table.
 If no new images are processed within the last hour, it sends an email alert.
-4. Image Processing API (/images_script Endpoint)
+# 4. Image Processing API (/images_script Endpoint)
 python
 Copy
 Edit
@@ -118,25 +118,22 @@ Step 3: Get last processed image ID
 python
 Copy
 Edit
-end_for_start_id = pd.read_sql("SELECT end_id FROM image_process_logs ORDER BY image_process_log_id DESC LIMIT 1", con)
+end_for_start_id = pd.read_sql(SQL Query)
 start_id = int((end_for_start_id['end_id']).to_string(index=False)) - 1
-Step 4: Fetch images that need processing
+# Step 4: Fetch images that need processing
 
 python
 Copy
 Edit
 fridge_images = pd.read_sql(
-    "SELECT fridge_images.*, fridge_types.fridge_type as fridge_type_name, fridge_types.No_of_racks, fridge_types.company_name, fridge_types.plan_o_gram_recommendation "
-    "FROM fridge_images INNER JOIN fridge_types ON fridge_images.fridge_type = fridge_types.fridge_type_id "
-    "WHERE fridge_images.image_id > " + str(start_id) + " AND fridge_images.status = 1 AND fridge_images.process_status = 0 AND fridge_images.fridge_type IN (1, 3) "
-    "ORDER BY fridge_images.image_id LIMIT 10", con)
-Step 5: Download images from the CDN
+    SQL Query )
+# Step 5: Download images from the CDN
 
 python
 Copy
 Edit
-fixed_url = 'https://cdn.berain.com.sa/vansales/uploads/plan/'
-download_directory = "/var/www/html/downloaded_images/"
+fixed_url = 'URL'
+download_directory = "URL"
 os.makedirs(download_directory, exist_ok=True)
 
 for index, row in fridge_images.iterrows():
@@ -151,13 +148,13 @@ for index, row in fridge_images.iterrows():
                 file.write(response.content)
     except Exception as e:
         print(f"Error downloading image: {str(e)}")
-Step 6: Remove corrupted images
+# Step 6: Remove corrupted images
 
 python
 Copy
 Edit
 fridge_images = fridge_images[~fridge_images['image'].isin(failed_downloaded_df['image'])]
-Step 7: Process Images using YOLO
+# Step 7: Process Images using YOLO
 
 python
 Copy
@@ -169,16 +166,16 @@ for index, row in fridge_images.iterrows():
     full_image_path = os.path.join(download_directory, image_filename)
 
     if is_image_corrupted(full_image_path):
-        mycursor.execute(f"UPDATE fridge_images SET process_status = 9 WHERE image = '{image_filename}'")
+        mycursor.execute(Query")
         con.commit()
         continue
 
     results = model.predict(full_image_path)  # Run YOLO model on the image
 
     # Store results in the database
-    mycursor.execute(f"UPDATE fridge_images SET process_status = 1 WHERE image_id = {image_id}")
+    mycursor.execute(Query)
     con.commit()
-Summary
+# Summary
 Database Connection: Connects to MySQL and fetches unprocessed images.
 Image Download: Retrieves images from a CDN and stores them locally.
 Corruption Check: Ensures images are valid before processing.
@@ -188,5 +185,3 @@ Error Handling: If the script does not process images for over an hour, it sends
 Potential Enhancements
 Store YOLO detection results in a structured format.
 Use multi-threading to speed up image processing.
-Improve email security by using environment variables instead of hardcoding passwords.
-Implement logging instead of print statements.
