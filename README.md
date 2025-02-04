@@ -57,9 +57,9 @@ def send_email(con):
 
     to_emails = options_data["option_value"].iloc[0].split(", ")
     smtp_username = options_data["option_meta"].iloc[0]
-    smtp_server = "smtp.gmail.com"
-    smtp_port = 587
-    smtp_password = "isvp fkjn yrrb trzv"
+    smtp_server = ".gmail.com"
+    smtp_port = 000
+    smtp_password = ""
 
     subject = "Plan-o-Gram Script Status Alert"
     body = "This is an alert to check if the Plan-o-Gram script is running or has encountered an error."
